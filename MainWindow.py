@@ -15,11 +15,13 @@ def on_mousewheel(canvas: Canvas, event):
 
 def add_product():
     text_variable_for_quantity = StringVar()
-    text_variable_for_quantity.trace('w', lambda name, index, mode, arg=text_variable_for_quantity: validate_quantity(arg))
+    text_variable_for_quantity.trace('w',
+                                     lambda name, index, mode, arg=text_variable_for_quantity: validate_quantity(arg))
     inputs = [Combobox(product_inputs_frame, values=product_names, state="readonly"),
               Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove"),
               Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove"),
-              Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center', textvariable=text_variable_for_quantity),
+              Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center',
+                    textvariable=text_variable_for_quantity),
               Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove")]
     index = len(rows)
     inputs[0].bind("<<ComboboxSelected>>", lambda event, arg=index: init_other_inputs(event, arg))
@@ -50,7 +52,7 @@ def exit_button_pressed():
 
 def init_data():
     customers = [Customer("01223", "Peter Parker", "Qo'yliq", 2.2, "90-932-75-98", ["Silver", 'Gold']),
-                 Customer("01223", "Sherlock Holmes", "Backer street", 31415, "90-987-65-43", ["Regular", 'VIP'])]
+                 Customer("75884", "Sherlock Holmes", "Backer street", 31415, "90-987-65-43", ["Regular", 'VIP'])]
     store = Store('U1510375', "John's Mall", "Ziyolar-9", "90-123-45-67")
     staff_members = [Staff("0", "02213", "Uncle Ben", "Manager"),
                      Staff("1", "45646", "Aunt May", "Cashier"),
@@ -61,7 +63,7 @@ def init_data():
     return products, customers, staff_members, store
 
 
-def init_other_inputs(event, row_number:int):
+def init_other_inputs(event, row_number: int):
     # 1 2 4
     combobox = rows[row_number][0]
     print(combobox)
@@ -70,19 +72,26 @@ def init_other_inputs(event, row_number:int):
     rows[row_number][4].config(text=str(products[combobox.current()].points))
 
 
+def on_close():
+    if messagebox.askokcancel("Confirm exit", "Do you want to exit?"):
+        main_window.destroy()
+
+
 if __name__ == '__main__':
     rows = []
     products, customers, staff_members, store = init_data()
     product_names = []
     for i in products:
         product_names.append(i.name)
-    print(product_names)
-    print(products)
+
     # Main window is 75% of the screen
     main_window = Tk()
+    main_window.winfo_toplevel().title("U1510375___U1510332")
     screen_width = main_window.winfo_screenwidth()
     screen_height = main_window.winfo_screenheight()
     main_window.config(width=screen_width * 0.75, height=screen_height * 0.75)
+    # Installing shutdown hook
+    main_window.protocol("WM_DELETE_WINDOW", on_close)
     # Do not allow widgets to control window size
     main_window.pack_propagate(0)
     main_window.grid_propagate(0)
@@ -98,15 +107,21 @@ if __name__ == '__main__':
     top_frame.pack(fill=X, side=TOP)
 
     # Top frame widgets
+    staff_names = []
+    for i in staff_members:
+        staff_names.append(i.name)
     staff_name_label = Label(top_frame, text="Staff Name:", fg='gray')
     staff_name_label.grid(row=0, column=0, sticky=W)
-    staff_name_input = Entry(top_frame, relief=FLAT)
+    staff_name_input = Combobox(top_frame, width=19, state="readonly", values=staff_names)
 
     staff_name_input.grid(row=0, column=1, sticky=W)
 
     customer_id_label = Label(top_frame, text="Customer ID:", fg='gray', pady=10)
     customer_id_label.grid(row=1, column=0, sticky=W)
-    customer_id_input = Entry(top_frame, relief=FLAT)
+    customer_ids = []
+    for i in customers:
+        customer_ids.append(i.ssn)
+    customer_id_input = Combobox(top_frame, width=19, values=customer_ids, state="readonly")
 
     customer_id_input.grid(row=1, column=1, sticky=W)
 
@@ -164,13 +179,14 @@ if __name__ == '__main__':
     scrollable_canvas.bind_all("<MouseWheel>",
                                lambda event: scrollable_canvas.yview_scroll(-1 * (event.delta / 120), 'units'))
     # Definitions
-    product_name_input = Combobox(product_inputs_frame,values=product_names, state="readonly")
+    product_name_input = Combobox(product_inputs_frame, values=product_names, state="readonly")
     product_name_input.bind("<<ComboboxSelected>>", lambda event, arg=0: init_other_inputs(event, arg))
     product_code_input = Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove")
     product_price_input = Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove")
     sv = StringVar()
     sv.trace('w', lambda name, index, mode, arg=sv: validate_quantity(arg))
-    product_quantity_input = Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center', textvariable=sv)
+    product_quantity_input = Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center',
+                                   textvariable=sv)
     product_points_input = Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove")
     # Organizing widgets
     product_name_input.grid(row=0, column=0)
