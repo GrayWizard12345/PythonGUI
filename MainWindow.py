@@ -1,3 +1,4 @@
+import datetime
 import subprocess
 from tkinter import *
 from tkinter import messagebox
@@ -17,12 +18,12 @@ def add_product():
     text_variable_for_quantity = StringVar()
     text_variable_for_quantity.trace('w',
                                      lambda name, index, mode, arg=text_variable_for_quantity: validate_quantity(arg))
-    inputs = [Combobox(product_inputs_frame, values=product_names, state="readonly"),
-              Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove"),
-              Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove"),
-              Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center',
+    inputs = [Combobox(product_inputs_frame, values=product_names, state="readonly", width=int(screen_width*0.015)),
+              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015), relief="groove"),
+              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015), relief="groove"),
+              Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center', width=int(screen_width*0.015),
                     textvariable=text_variable_for_quantity),
-              Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove")]
+              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015),relief="groove")]
     index = len(rows)
     inputs[0].bind("<<ComboboxSelected>>", lambda event, arg=index: init_other_inputs(event, arg))
     inputs[0].grid(row=index, column=0, pady=5)
@@ -59,7 +60,7 @@ def init_data():
                      Staff('2', "12345", "John Doe", "Owner")]
     products = [Product(69, "Cucumber", "Fresh and long cucumber", 69.69, 666),
                 Product(666, "Tomatoes", "Red and plump", 12.14, 314),
-                Product(123456, "Candies", "Sweet sweet candies", 50, 100)]
+                Product(123, "Candies", "Sweet sweet candies", 50, 100)]
     return products, customers, staff_members, store
 
 
@@ -75,6 +76,41 @@ def init_other_inputs(event, row_number: int):
 def on_close():
     if messagebox.askokcancel("Confirm exit", "Do you want to exit?"):
         main_window.destroy()
+
+
+def print_receipt(staff_name_combo: Combobox, customer_id_combo: Combobox, input_data:list):
+    date = datetime.datetime.now()
+    staff_name = staff_name_combo.get()
+    customer_id = customer_id_combo.get()
+    receipt = 'Welcome to Store Management System - IUT\n' \
+              'Staff:{0}\n' \
+              'Customer ID:{1}\n' \
+              '\n' \
+              'RECEIPT\n\n' \
+              '{2}\n' \
+              '{3}\n' \
+              'Product Name\tProduct Code\tPrice\tQ\n' \
+        .format(staff_name, customer_id, date.date(), date.time())
+
+    total_price = 0
+    total_points = 0
+    for datum in input_data:
+        receipt += '\n{0}\t\t{1}\t{2}\t{3}'.format(datum[0].get(), datum[1].cget('text'), datum[2].cget('text'),
+                                                       datum[3].get())
+        total_price += float(datum[2].cget('text')) * int(datum[3].get())
+        total_points += float(datum[4].cget('text')) * int(datum[3].get())
+
+    receipt += "\n\n\tTOTAL\t\t{0}\n" \
+               "\nTotal Points: {1}\n" \
+               "***CUSTOMER COPY***".format(total_price, total_points)
+    receipt_window = Tk()
+    receipt_window.config(width=800, height=600)
+    receipt_frame = Frame(receipt_window, height=600, width=800)
+    receipt_text = Label(receipt_frame, text=receipt, padx=10, pady=10)
+    receipt_frame.pack()
+    receipt_text.pack()
+    close = Button(receipt_frame, text='CLOSE', pady=20, command=lambda : receipt_window.destroy())
+    close.pack(side=BOTTOM)
 
 
 if __name__ == '__main__':
@@ -155,14 +191,14 @@ if __name__ == '__main__':
 
     # Actual inputs
     # Creating scrollable frame
-    frame = Frame(main_window, padx=50, height=400)
+    frame = Frame(main_window, padx=50)
     frame.pack(side=TOP, fill=BOTH, expand=True)
-    scrollable_canvas = Canvas(frame, height=400)
+    scrollable_canvas = Canvas(frame)
     scrollable_canvas.pack(side=TOP, fill=BOTH, expand=True)
     scrollable_canvas.config(relief='ridge', bd=0, highlightthickness=0)
-    product_inputs_frame = Frame(scrollable_canvas, height=300, bg='#f1f1f1',
+    product_inputs_frame = Frame(scrollable_canvas, bg='#f1f1f1',
                                  highlightbackground="#A0A0A0", highlightcolor="#A0A0A0", highlightthickness=4)
-    product_inputs_frame.pack(side=TOP, fill=BOTH)
+    product_inputs_frame.pack(side=TOP, fill=X, expand=True)
 
     add_more_products_label = Label(add_more_frame, text="Add more products", fg='gray')
     add_more_products_label.pack(side=LEFT)
@@ -179,21 +215,21 @@ if __name__ == '__main__':
     scrollable_canvas.bind_all("<MouseWheel>",
                                lambda event: scrollable_canvas.yview_scroll(-1 * (event.delta / 120), 'units'))
     # Definitions
-    product_name_input = Combobox(product_inputs_frame, values=product_names, state="readonly")
+    product_name_input = Combobox(product_inputs_frame, values=product_names, state="readonly",width=int(screen_width*0.015))
     product_name_input.bind("<<ComboboxSelected>>", lambda event, arg=0: init_other_inputs(event, arg))
-    product_code_input = Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove")
-    product_price_input = Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove")
+    product_code_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015), relief="groove")
+    product_price_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015), relief="groove")
     sv = StringVar()
     sv.trace('w', lambda name, index, mode, arg=sv: validate_quantity(arg))
     product_quantity_input = Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center',
-                                   textvariable=sv)
-    product_points_input = Label(product_inputs_frame, bg='white', fg='black', width=22, relief="groove")
+                                   textvariable=sv, width=int(screen_width*0.015))
+    product_points_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015), relief="groove")
     # Organizing widgets
-    product_name_input.grid(row=0, column=0)
-    product_code_input.grid(row=0, column=1)
-    product_price_input.grid(row=0, column=2)
-    product_quantity_input.grid(row=0, column=3)
-    product_points_input.grid(row=0, column=4)
+    product_name_input.grid(row=0, column=0, sticky=W+E+N+S)
+    product_code_input.grid(row=0, column=1, sticky=W+E+N+S)
+    product_price_input.grid(row=0, column=2, sticky=W+E+N+S)
+    product_quantity_input.grid(row=0, column=3, sticky=W+E+N+S)
+    product_points_input.grid(row=0, column=4, sticky=W+E+N+S)
     print(product_name_input.current())
     rows.append(
         [product_name_input, product_code_input, product_price_input, product_quantity_input, product_points_input])
@@ -201,7 +237,7 @@ if __name__ == '__main__':
     control_buttons_frame = Frame(main_window, padx=50, pady=30)
     control_buttons_frame.pack(side=LEFT)
     print_button = Button(control_buttons_frame, text="Print", fg="black", bg='#50C878', padx=30,
-                          command=lambda: print(rows))
+                          command=lambda staff_name_combo=staff_name_input, customer_id_combo=customer_id_input, input_data=rows: print_receipt(staff_name_combo, customer_id_combo, input_data))
     print_button.pack(side=LEFT)
     close_button = Button(control_buttons_frame, text="Close", fg="black", bg='#50C878', padx=30,
                           command=exit_button_pressed)
