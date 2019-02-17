@@ -162,7 +162,7 @@ if __name__ == '__main__':
     scrollable_canvas.config(relief='ridge', bd=0, highlightthickness=0)
     product_inputs_frame = Frame(scrollable_canvas, height=300, bg='#f1f1f1',
                                  highlightbackground="#A0A0A0", highlightcolor="#A0A0A0", highlightthickness=4)
-    product_inputs_frame.pack(side=TOP, fill=Y)
+    product_inputs_frame.pack(side=TOP, fill=BOTH)
 
     add_more_products_label = Label(add_more_frame, text="Add more products", fg='gray')
     add_more_products_label.pack(side=LEFT)
