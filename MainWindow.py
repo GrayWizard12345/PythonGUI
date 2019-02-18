@@ -80,37 +80,40 @@ def on_close():
 
 def print_receipt(staff_name_combo: Combobox, customer_id_combo: Combobox, input_data:list):
     date = datetime.datetime.now()
-    staff_name = staff_name_combo.get()
-    customer_id = customer_id_combo.get()
-    receipt = 'Welcome to Store Management System - IUT\n' \
-              'Staff:{0}\n' \
-              'Customer ID:{1}\n' \
-              '\n' \
-              'RECEIPT\n\n' \
-              '{2}\n' \
-              '{3}\n' \
-              'Product Name\tProduct Code\tPrice\tQ\n' \
-        .format(staff_name, customer_id, date.date(), date.time())
+    try:
+        staff_name = staff_name_combo.get()
+        customer_id = customer_id_combo.get()
+        receipt = 'Welcome to Store Management System - IUT\n' \
+                  'Staff:{0}\n' \
+                  'Customer ID:{1}\n' \
+                  '\n' \
+                  'RECEIPT\n\n' \
+                  '{2}\n' \
+                  '{3}\n' \
+                  'Product Name\tProduct Code\tPrice\tQ\n' \
+            .format(staff_name, customer_id, date.date(), date.time())
 
-    total_price = 0
-    total_points = 0
-    for datum in input_data:
-        receipt += '\n{0}\t\t{1}\t{2}\t{3}'.format(datum[0].get(), datum[1].cget('text'), datum[2].cget('text'),
-                                                       datum[3].get())
-        total_price += float(datum[2].cget('text')) * int(datum[3].get())
-        total_points += float(datum[4].cget('text')) * int(datum[3].get())
+        total_price = 0
+        total_points = 0
+        for datum in input_data:
+            receipt += '\n{0}\t\t{1}\t{2}\t{3}'.format(datum[0].get(), datum[1].cget('text'), datum[2].cget('text'),
+                                                           datum[3].get())
+            total_price += float(datum[2].cget('text')) * int(datum[3].get())
+            total_points += float(datum[4].cget('text')) * int(datum[3].get())
 
-    receipt += "\n\n\tTOTAL\t\t{0}\n" \
-               "\nTotal Points: {1}\n" \
-               "***CUSTOMER COPY***".format(total_price, total_points)
-    receipt_window = Tk()
-    receipt_window.config(width=800, height=600)
-    receipt_frame = Frame(receipt_window, height=600, width=800)
-    receipt_text = Label(receipt_frame, text=receipt, padx=10, pady=10)
-    receipt_frame.pack()
-    receipt_text.pack()
-    close = Button(receipt_frame, text='CLOSE', pady=20, command=lambda : receipt_window.destroy())
-    close.pack(side=BOTTOM)
+        receipt += "\n\n\tTOTAL\t\t{0}\n" \
+                   "\nTotal Points: {1}\n" \
+                   "***CUSTOMER COPY***".format(total_price, total_points)
+        receipt_window = Tk()
+        receipt_window.config(width=800, height=600)
+        receipt_frame = Frame(receipt_window, height=600, width=800)
+        receipt_text = Label(receipt_frame, text=receipt, padx=10, pady=10)
+        receipt_frame.pack()
+        receipt_text.pack()
+        close = Button(receipt_frame, text='CLOSE', pady=20, command=lambda: receipt_window.destroy())
+        close.pack(side=BOTTOM)
+    except:
+        messagebox.showwarning("Something went wrong...", "Please check if all fields are filled!")
 
 
 if __name__ == '__main__':
