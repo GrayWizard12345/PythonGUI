@@ -3,6 +3,7 @@ import subprocess
 from tkinter import *
 from tkinter import messagebox
 from tkinter.ttk import Combobox
+import platform
 
 from Customer import Customer
 from Product import Product
@@ -10,28 +11,33 @@ from Staff import Staff
 from Store import Store
 
 
-def on_mousewheel(canvas: Canvas, event):
-    canvas.yview_scroll(-1 * (event.delta / 120), 'units')
+def on_mousewheel(event):
+    if platform.system().lower() == 'linux':
+        if event.num == 5:
+            scrollable_canvas.yview_scroll(1, "units")
+        else:
+            scrollable_canvas.yview_scroll(-1, "units")
+    else:
+        scrollable_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
 
 def add_product():
     text_variable_for_quantity = StringVar()
     text_variable_for_quantity.trace('w',
                                      lambda name, index, mode, arg=text_variable_for_quantity: validate_quantity(arg))
-    inputs = [Combobox(product_inputs_frame, values=product_names, state="readonly", width=int(screen_width * 0.015)),
-              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015), relief="groove"),
-              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015), relief="groove"),
+    inputs = [Combobox(product_inputs_frame, values=product_names, state="readonly"),
+              Label(product_inputs_frame, bg='white', fg='black', relief="groove"),
+              Label(product_inputs_frame, bg='white', fg='black', relief="groove"),
               Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center',
-                    width=int(screen_width * 0.015),
                     textvariable=text_variable_for_quantity),
-              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015), relief="groove")]
+              Label(product_inputs_frame, bg='white', fg='black', relief="groove")]
     index = len(rows)
     inputs[0].bind("<<ComboboxSelected>>", lambda event, arg=index: init_other_inputs(event, arg))
-    inputs[0].grid(row=index, column=0, pady=5)
-    inputs[1].grid(row=index, column=1, pady=5)
-    inputs[2].grid(row=index, column=2, pady=5)
-    inputs[3].grid(row=index, column=3, pady=5)
-    inputs[4].grid(row=index, column=4, pady=5)
+    inputs[0].grid(row=index, column=0, pady=2, sticky=W + E + N + S)
+    inputs[1].grid(row=index, column=1, pady=2, sticky=W + E + N + S)
+    inputs[2].grid(row=index, column=2, pady=2, sticky=W + E + N + S)
+    inputs[3].grid(row=index, column=3, pady=2, sticky=W + E + N + S)
+    inputs[4].grid(row=index, column=4, pady=2, sticky=W + E + N + S)
     rows.append(inputs)
 
 
@@ -112,13 +118,15 @@ def print_receipt(staff_name_combo: Combobox, customer_id_combo: Combobox, input
                    "\nTotal Points: {1}\n" \
                    "***CUSTOMER COPY***".format(total_price, total_points)
         receipt_window = Tk()
+        receipt_window.resizable(False, False)
         receipt_window.config(width=800, height=600)
         receipt_window.winfo_toplevel().title("RECEIPT")
         receipt_frame = Frame(receipt_window, height=600, width=800)
         receipt_text = Label(receipt_frame, text=receipt, padx=10, pady=10)
         receipt_frame.pack()
         receipt_text.pack()
-        close = Button(receipt_frame, text='CLOSE', pady=20, command=lambda: receipt_window.destroy())
+        close = Button(receipt_frame, text='CLOSE', pady=20, command=lambda: receipt_window.destroy(), width=4, height=1, bg="#50C878")
+        close.pack_propagate(0)
         close.pack(side=BOTTOM)
     except:
         messagebox.showwarning("Something went wrong...", "Please check if all fields are filled!")
@@ -202,6 +210,7 @@ if __name__ == '__main__':
 
     # Actual inputs
     # Creating scrollable frame
+    labels_frame.update_idletasks()
     frame = Frame(main_window, padx=50)
     frame.pack(side=TOP, fill=BOTH, expand=True)
     scrollable_canvas = Canvas(frame)
@@ -210,34 +219,45 @@ if __name__ == '__main__':
     product_inputs_frame = Frame(scrollable_canvas, bg='#f1f1f1',
                                  highlightbackground="#A0A0A0", highlightcolor="#A0A0A0", highlightthickness=4)
     product_inputs_frame.pack(side=TOP, fill=X, expand=True)
+    product_inputs_frame.update_idletasks()
+
+    product_inputs_frame.columnconfigure(0, minsize=labels_frame.winfo_width() / 6)
+    product_inputs_frame.columnconfigure(1, minsize=labels_frame.winfo_width() / 6)
+    product_inputs_frame.columnconfigure(2, minsize=labels_frame.winfo_width() / 6)
+    product_inputs_frame.columnconfigure(3, minsize=labels_frame.winfo_width() / 6)
+    product_inputs_frame.columnconfigure(4, minsize=labels_frame.winfo_width() / 6)
 
     add_more_products_label = Label(add_more_frame, text="Add more products", fg='gray')
     add_more_products_label.pack(side=LEFT)
     add_more_products_button = Button(add_more_frame, text='+', fg='white',
-                                      bg='#50C878', command=add_product)
+                                      bg='#50C878', command=add_product, width=3, height=1)
     add_more_products_button.pack(side=LEFT)
 
     vertical_scroll = Scrollbar(scrollable_canvas, orient='vertical', command=scrollable_canvas.yview)
-    scrollable_canvas.configure(yscrollcommand=vertical_scroll.set, scrollregion=scrollable_canvas.bbox("all"))
+    scrollable_canvas.configure(yscrollcommand=vertical_scroll.set, scrollregion=scrollable_canvas.bbox(ALL))
 
     vertical_scroll.pack(side=RIGHT, fill=Y)
 
     scrollable_canvas.create_window((0, 0), window=product_inputs_frame, anchor='nw')
-    scrollable_canvas.bind_all("<MouseWheel>",
-                               lambda event: scrollable_canvas.yview_scroll(-1 * (event.delta / 120), 'units'))
+    print("OS = {0}".format(platform.system().lower()))
+    # Bug with os-X on mouse scroll event: https://bugs.python.org/issue10731
+    if platform.system().lower() == "linux":
+        scrollable_canvas.bind_all("<4>", on_mousewheel)
+        scrollable_canvas.bind_all("<5>", on_mousewheel)
+    else:
+        scrollable_canvas.bind_all("<MouseWheel>", on_mousewheel)
     # Definitions
-    product_name_input = Combobox(product_inputs_frame, values=product_names, state="readonly",
-                                  width=int(screen_width * 0.015))
+    product_name_input = Combobox(product_inputs_frame, values=product_names, state="readonly")
     product_name_input.bind("<<ComboboxSelected>>", lambda event, arg=0: init_other_inputs(event, arg))
-    product_code_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015),
+    product_code_input = Label(product_inputs_frame, bg='white', fg='black',
                                relief="groove")
-    product_price_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015),
+    product_price_input = Label(product_inputs_frame, bg='white', fg='black',
                                 relief="groove")
     sv = StringVar()
     sv.trace('w', lambda name, index, mode, arg=sv: validate_quantity(arg))
     product_quantity_input = Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center',
-                                   textvariable=sv, width=int(screen_width * 0.015))
-    product_points_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015),
+                                   textvariable=sv)
+    product_points_input = Label(product_inputs_frame, bg='white', fg='black',
                                  relief="groove")
     # Organizing widgets
     product_name_input.grid(row=0, column=0, sticky=W + E + N + S)
