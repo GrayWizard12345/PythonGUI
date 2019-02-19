@@ -18,12 +18,13 @@ def add_product():
     text_variable_for_quantity = StringVar()
     text_variable_for_quantity.trace('w',
                                      lambda name, index, mode, arg=text_variable_for_quantity: validate_quantity(arg))
-    inputs = [Combobox(product_inputs_frame, values=product_names, state="readonly", width=int(screen_width*0.015)),
-              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015), relief="groove"),
-              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015), relief="groove"),
-              Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center', width=int(screen_width*0.015),
+    inputs = [Combobox(product_inputs_frame, values=product_names, state="readonly", width=int(screen_width * 0.015)),
+              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015), relief="groove"),
+              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015), relief="groove"),
+              Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center',
+                    width=int(screen_width * 0.015),
                     textvariable=text_variable_for_quantity),
-              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015),relief="groove")]
+              Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015), relief="groove")]
     index = len(rows)
     inputs[0].bind("<<ComboboxSelected>>", lambda event, arg=index: init_other_inputs(event, arg))
     inputs[0].grid(row=index, column=0, pady=5)
@@ -53,14 +54,16 @@ def exit_button_pressed():
 
 def init_data():
     customers = [Customer("01223", "Peter Parker", "Qo'yliq", 2.2, "90-932-75-98", ["Silver", 'Gold']),
-                 Customer("75884", "Sherlock Holmes", "Backer street", 31415, "90-987-65-43", ["Regular", 'VIP'])]
+                 Customer("75884", "Sherlock Holmes", "Backer street", 31415, "90-987-65-43", ["Regular", 'VIP']),
+                 Customer("70070", "James Bond", "NY City", 450, "90-900-90-90", ["Silver", 'Gold'])]
     store = Store('U1510375', "John's Mall", "Ziyolar-9", "90-123-45-67")
     staff_members = [Staff("0", "02213", "Uncle Ben", "Manager"),
                      Staff("1", "45646", "Aunt May", "Cashier"),
                      Staff('2', "12345", "John Doe", "Owner")]
     products = [Product(69, "Cucumber", "Fresh and long cucumber", 69.69, 666),
                 Product(666, "Tomatoes", "Red and plump", 12.14, 314),
-                Product(123, "Candies", "Sweet sweet candies", 50, 100)]
+                Product(123, "_Candies_", "Sweet sweet candies", 50, 100),
+                Product(314, "_Bananas_", "My favorite", 42, 450)]
     return products, customers, staff_members, store
 
 
@@ -78,11 +81,14 @@ def on_close():
         main_window.destroy()
 
 
-def print_receipt(staff_name_combo: Combobox, customer_id_combo: Combobox, input_data:list):
+def print_receipt(staff_name_combo: Combobox, customer_id_combo: Combobox, input_data: list):
     date = datetime.datetime.now()
     try:
         staff_name = staff_name_combo.get()
         customer_id = customer_id_combo.get()
+        print(staff_name)
+        if staff_name == '' or customer_id == '':
+            raise TypeError
         receipt = 'Welcome to Store Management System - IUT\n' \
                   'Staff:{0}\n' \
                   'Customer ID:{1}\n' \
@@ -97,15 +103,17 @@ def print_receipt(staff_name_combo: Combobox, customer_id_combo: Combobox, input
         total_points = 0
         for datum in input_data:
             receipt += '\n{0}\t\t{1}\t{2}\t{3}'.format(datum[0].get(), datum[1].cget('text'), datum[2].cget('text'),
-                                                           datum[3].get())
+                                                       datum[3].get())
             total_price += float(datum[2].cget('text')) * int(datum[3].get())
             total_points += float(datum[4].cget('text')) * int(datum[3].get())
 
+        receipt += "\n"
         receipt += "\n\n\tTOTAL\t\t{0}\n" \
                    "\nTotal Points: {1}\n" \
                    "***CUSTOMER COPY***".format(total_price, total_points)
         receipt_window = Tk()
         receipt_window.config(width=800, height=600)
+        receipt_window.winfo_toplevel().title("RECEIPT")
         receipt_frame = Frame(receipt_window, height=600, width=800)
         receipt_text = Label(receipt_frame, text=receipt, padx=10, pady=10)
         receipt_frame.pack()
@@ -218,21 +226,25 @@ if __name__ == '__main__':
     scrollable_canvas.bind_all("<MouseWheel>",
                                lambda event: scrollable_canvas.yview_scroll(-1 * (event.delta / 120), 'units'))
     # Definitions
-    product_name_input = Combobox(product_inputs_frame, values=product_names, state="readonly",width=int(screen_width*0.015))
+    product_name_input = Combobox(product_inputs_frame, values=product_names, state="readonly",
+                                  width=int(screen_width * 0.015))
     product_name_input.bind("<<ComboboxSelected>>", lambda event, arg=0: init_other_inputs(event, arg))
-    product_code_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015), relief="groove")
-    product_price_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015), relief="groove")
+    product_code_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015),
+                               relief="groove")
+    product_price_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015),
+                                relief="groove")
     sv = StringVar()
     sv.trace('w', lambda name, index, mode, arg=sv: validate_quantity(arg))
     product_quantity_input = Entry(product_inputs_frame, relief="groove", exportselection=0, justify='center',
-                                   textvariable=sv, width=int(screen_width*0.015))
-    product_points_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width*0.015), relief="groove")
+                                   textvariable=sv, width=int(screen_width * 0.015))
+    product_points_input = Label(product_inputs_frame, bg='white', fg='black', width=int(screen_width * 0.015),
+                                 relief="groove")
     # Organizing widgets
-    product_name_input.grid(row=0, column=0, sticky=W+E+N+S)
-    product_code_input.grid(row=0, column=1, sticky=W+E+N+S)
-    product_price_input.grid(row=0, column=2, sticky=W+E+N+S)
-    product_quantity_input.grid(row=0, column=3, sticky=W+E+N+S)
-    product_points_input.grid(row=0, column=4, sticky=W+E+N+S)
+    product_name_input.grid(row=0, column=0, sticky=W + E + N + S)
+    product_code_input.grid(row=0, column=1, sticky=W + E + N + S)
+    product_price_input.grid(row=0, column=2, sticky=W + E + N + S)
+    product_quantity_input.grid(row=0, column=3, sticky=W + E + N + S)
+    product_points_input.grid(row=0, column=4, sticky=W + E + N + S)
     print(product_name_input.current())
     rows.append(
         [product_name_input, product_code_input, product_price_input, product_quantity_input, product_points_input])
@@ -240,7 +252,9 @@ if __name__ == '__main__':
     control_buttons_frame = Frame(main_window, padx=50, pady=30)
     control_buttons_frame.pack(side=LEFT)
     print_button = Button(control_buttons_frame, text="Print", fg="black", bg='#50C878', padx=30,
-                          command=lambda staff_name_combo=staff_name_input, customer_id_combo=customer_id_input, input_data=rows: print_receipt(staff_name_combo, customer_id_combo, input_data))
+                          command=lambda staff_name_combo=staff_name_input, customer_id_combo=customer_id_input,
+                                         input_data=rows: print_receipt(staff_name_combo, customer_id_combo,
+                                                                        input_data))
     print_button.pack(side=LEFT)
     close_button = Button(control_buttons_frame, text="Close", fg="black", bg='#50C878', padx=30,
                           command=exit_button_pressed)
